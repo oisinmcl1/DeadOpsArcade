@@ -1,11 +1,18 @@
 # Ignore everything by default
 *
 
-# Allow only the Scripts folder and .gitignore itself
-!Assets/Scripts/
-!Assets/Scripts/*.cs
+# Never ignore .gitignore itself
 !.gitignore
 
-# Ignore meta files if not needed
+# Unignore the Assets folder so we can traverse down to Scripts
+!Assets/
+
+# Unignore the Scripts folder inside Assets
+!Assets/Scripts/
+
+# Unignore C# files in Scripts and any of its subfolders
+!Assets/Scripts/**/*.cs
+
+# Ignore Unity meta files
 *.meta
 
