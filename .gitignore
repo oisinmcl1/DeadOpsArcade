@@ -1,0 +1,11 @@
+# Ignore everything by default
+*
+
+# Allow only the Scripts folder and .gitignore itself
+!Assets/Scripts/
+!Assets/Scripts/*.cs
+!.gitignore
+
+# Ignore meta files if not needed
+*.meta
+
