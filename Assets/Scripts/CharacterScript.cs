@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -178,6 +179,15 @@ public class CharacterScript : MonoBehaviour
         if (collider.gameObject.CompareTag("zombie"))
         {
             Debug.Log("Player taking damage!");
+        }
+    }
+
+    private void OnTriggerExit(Collider other) {
+        // If player leaves island teleport back
+        if (other.gameObject.CompareTag("island"))
+        {
+            Debug.Log("Player left island");
+            transform.position = new Vector3(2.97f, 6.38f, 3.52f);
         }
     }
 }
