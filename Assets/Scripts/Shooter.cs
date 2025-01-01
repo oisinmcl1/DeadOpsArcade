@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Shooter : MonoBehaviour
 {
@@ -40,6 +41,15 @@ public class Shooter : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && canFire) { //canFire boolean controls the firing rate so 1 bullet can be fired every 0.25 seconds
             StartCoroutine(FireBullet());  //coroutine handles the bullet firing 
             }
+        
+        // Check for controller right trigger
+        if (Gamepad.current != null)
+        {
+            if (Gamepad.current.rightTrigger.wasPressedThisFrame && canFire)
+            {
+                StartCoroutine(FireBullet());
+            }
+        }
     }
 
         IEnumerator FireBullet() {
@@ -93,7 +103,7 @@ public class Shooter : MonoBehaviour
 
     void HandleWeaponSwitching()
     {
-        // Example: Switch between weapons using number keys
+        // Keyboard switching weapons
         if (Input.GetKeyDown(KeyCode.Alpha1)) 
         {
             currentWeaponIndex = 0;
@@ -105,6 +115,24 @@ public class Shooter : MonoBehaviour
             currentGunType = GunType.Revolver;
         }
         EquipWeapon(currentWeaponIndex);
-    }
+        
+        
+        // Controller switching weapons (using dpad)
+        if (Gamepad.current != null)
+        {
 
+            if (Gamepad.current.dpad.left.wasPressedThisFrame)
+            {
+                currentWeaponIndex = 0;
+                currentGunType = GunType.Pistol;
+            }
+            else if (Gamepad.current.dpad.right.wasPressedThisFrame)
+            {
+                currentWeaponIndex = 1;
+                currentGunType = GunType.Revolver;
+            }
+
+            EquipWeapon(currentWeaponIndex);
+        }
+    }
 }
