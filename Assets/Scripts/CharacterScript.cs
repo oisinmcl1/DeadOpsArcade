@@ -174,11 +174,25 @@ public class CharacterScript : MonoBehaviour
         Gizmos.DrawWireSphere(spherePos, 0.2f);
     }
 
-    void OnCollisionEnter(Collision collider)
+    void OnTriggerEnter(Collider collider)
     {
         if (collider.gameObject.CompareTag("zombie"))
         {
-            Debug.Log("Player taking damage!");
+            Debug.Log("Player taking damage!\n" +
+                      "Health is now: " + health);
+            
+            health -= 1f;
+
+            if (health <= 0)
+            {
+                // Kill player if health is 0
+                Debug.Log("Player died!");
+                Destroy(gameObject);
+                
+                // Using gamemanager call gameOver func
+                GameManagerScript gm = FindObjectOfType<GameManagerScript>();
+                gm.gameOver();
+            }
         }
     }
 

@@ -111,7 +111,7 @@ public class GameManagerScript : MonoBehaviour
     }
 
 
-    private void gameOver()
+    public void gameOver()
     {
         Debug.Log("Game Over!");
         changeScene(gameState.Menu);
