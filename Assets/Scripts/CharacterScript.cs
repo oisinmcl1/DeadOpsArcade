@@ -18,6 +18,7 @@ public class CharacterScript : MonoBehaviour
     Vector3 spherePos;
     Vector3 velocity;
     Vector3 direction;
+    private bool isFrozen;
 
     void Start()
     {
@@ -31,6 +32,7 @@ public class CharacterScript : MonoBehaviour
         s = GetComponentInChildren<Shooter>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         gms = FindObjectOfType<GameManagerScript>();
+        isFrozen = false;
     }
 
     void Update()
@@ -109,6 +111,11 @@ public class CharacterScript : MonoBehaviour
     
     void HandleMovement()
     {
+        if (isFrozen)
+        {
+            return;
+        }
+        
         // Determine the forward direction based on the magnitude of the direction vector
         // Vector3 forward = direction;
         Vector3 forward;
@@ -233,6 +240,8 @@ public class CharacterScript : MonoBehaviour
     {
         Debug.Log("Player dying");
         isAlive = false;
+        isFrozen = true;
+        
         Debug.Log("Playing death animation");
         animator.SetBool("isDead", true);
         
@@ -258,5 +267,34 @@ public class CharacterScript : MonoBehaviour
         if(health <= 0) {
             StartCoroutine(die());
         }
+    }
+    
+    // due to state machine for animations, need to freeze player for a moment to reset animations so it doesnt bug out
+    public void freezePlayer()
+    {
+        Debug.Log("Freezing Player");
+        if (!isFrozen)
+        {
+            StartCoroutine(freeze());
+        }
+    }
+    IEnumerator freeze()
+    {
+        isFrozen = true;
+
+        // reset the animations to idle
+        if (animator != null)
+        {
+            animator.SetBool("isMovingForward", false);
+            animator.SetBool("isMovingBackward", false);
+            animator.SetBool("isMovingRight", false);
+            animator.SetBool("isMovingLeft", false);
+            animator.SetBool("isMovingSideways", false);
+        }
+
+        // wait a small bit to ensure animations are reset
+        yield return new WaitForSeconds(0.1f);
+
+        isFrozen = false;
     }
 }

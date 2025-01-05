@@ -150,51 +150,60 @@ public class Shooter : MonoBehaviour
 
     void HandleWeaponSwitching()
     {
+        // get char script
+        CharacterScript cs = player.GetComponent<CharacterScript>();
+
+        // track if weapon is switched
+        bool weaponSwitched = false;
+
         // Keyboard switching weapons
-        if (Input.GetKeyDown(KeyCode.Alpha1)) 
+        if (Input.GetKeyDown(KeyCode.Alpha1) && currentWeaponIndex != 0)
         {
             currentWeaponIndex = 0;
             currentGunType = GunType.Pistol;
+            weaponSwitched = true;
         }
-        
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) 
+        else if (Input.GetKeyDown(KeyCode.Alpha2) && currentWeaponIndex != 1)
         {
             currentWeaponIndex = 1;
             currentGunType = GunType.Revolver;
+            weaponSwitched = true;
         }
-        
-        else if (Input.GetKeyDown(KeyCode.Alpha3)) 
+        else if (Input.GetKeyDown(KeyCode.Alpha3) && currentWeaponIndex != 2)
         {
             currentWeaponIndex = 2;
             currentGunType = GunType.Rifle;
+            weaponSwitched = true;
         }
-        
-        EquipWeapon(currentWeaponIndex);
-        
-        
+
         // Controller switching weapons (using dpad)
         if (Gamepad.current != null)
         {
-
-            if (Gamepad.current.dpad.left.wasPressedThisFrame)
+            if (Gamepad.current.dpad.left.wasPressedThisFrame && currentWeaponIndex != 0)
             {
                 currentWeaponIndex = 0;
                 currentGunType = GunType.Pistol;
+                weaponSwitched = true;
             }
-            
-            else if (Gamepad.current.dpad.right.wasPressedThisFrame)
+            else if (Gamepad.current.dpad.right.wasPressedThisFrame && currentWeaponIndex != 1)
             {
                 currentWeaponIndex = 1;
                 currentGunType = GunType.Revolver;
+                weaponSwitched = true;
             }
-            
-            else if (Gamepad.current.dpad.up.wasPressedThisFrame)
+            else if (Gamepad.current.dpad.up.wasPressedThisFrame && currentWeaponIndex != 2)
             {
                 currentWeaponIndex = 2;
                 currentGunType = GunType.Rifle;
+                weaponSwitched = true;
             }
-
+        }
+        
+        if (weaponSwitched)
+        {
+            cs.freezePlayer();
             EquipWeapon(currentWeaponIndex);
         }
     }
+
 }
