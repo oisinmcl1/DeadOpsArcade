@@ -29,6 +29,9 @@ public class GameManagerScript : MonoBehaviour
     private GameObject highestRoundTextObj;
     private TMP_Text roundText;
     private TMP_Text highestRoundText;
+    private int points;
+    private GameObject pointTextObj;
+    private TMP_Text pointText;
 
     // Start is called before the first frame update
     void Start()
@@ -129,6 +132,10 @@ public class GameManagerScript : MonoBehaviour
         // since gm is swapping scenes i have to find most components programatically
         roundTextObj = GameObject.FindGameObjectWithTag("roundtxt");
         roundText = roundTextObj.GetComponent<TMP_Text>();
+
+        points = 0;
+        pointTextObj = GameObject.FindGameObjectWithTag("pointstxt");
+        pointText = pointTextObj.GetComponent<TMP_Text>();
         
         startNextRound();
     }
@@ -259,6 +266,8 @@ public class GameManagerScript : MonoBehaviour
         int amtZombies = allZombies.Length;*/
         
         int amtZombies = zombies.Count;
+
+        addPoints(100);
         
         Debug.Log("Zombies left in round: " + amtZombies);
         
@@ -266,5 +275,17 @@ public class GameManagerScript : MonoBehaviour
         {
             startNextRound();
         }
+    }
+    
+    public void addPoints(int amt)
+    {
+        points += amt;
+        pointText.text = points.ToString();
+    }
+    
+    public void removePoints(int amt)
+    {
+        points -= amt;
+        pointText.text = points.ToString();
     }
 }
