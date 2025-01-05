@@ -37,6 +37,8 @@ public class GameManagerScript : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(this.gameObject);
+
+            highestRound = 0;
         }
         else
         {
@@ -92,6 +94,11 @@ public class GameManagerScript : MonoBehaviour
             {
                 startButton.onClick.AddListener(onStartGameButtonClick);
                 Debug.Log("StartButton's OnClick listener added.");
+                
+                // find highscore text and set it
+                highestRoundTextObj = GameObject.FindGameObjectWithTag("highestroundtxt");
+                highestRoundText = highestRoundTextObj.GetComponent<TMP_Text>();
+                highestRoundText.text = highestRound.ToString();
             }
             else
             {
@@ -116,15 +123,12 @@ public class GameManagerScript : MonoBehaviour
         spawnCharacter();
         
         round = 0;
-        highestRound = 0;
         baseAmtZombies = 2;
         zombHealthIncr = 0.5f;
         
         // since gm is swapping scenes i have to find most components programatically
         roundTextObj = GameObject.FindGameObjectWithTag("roundtxt");
         roundText = roundTextObj.GetComponent<TMP_Text>();
-        highestRoundTextObj = GameObject.FindGameObjectWithTag("highestroundtxt");
-        highestRoundText = highestRoundTextObj.GetComponent<TMP_Text>();
         
         startNextRound();
     }
@@ -163,7 +167,6 @@ public class GameManagerScript : MonoBehaviour
         if (round > highestRound)
         {
             highestRound = round;
-            highestRoundText.text = highestRound.ToString();
         }
 
         // spawn zombies depending on round
@@ -177,6 +180,13 @@ public class GameManagerScript : MonoBehaviour
             // increase health of zombie
             float newHealth = newZombie.GetComponent<zombieScript>().health + zombHealthIncr;
             newZombie.GetComponent<zombieScript>().setHealth(newHealth);
+            
+            // increase damage of zombie by .5 every 5 rounds
+            if (round % 5 == 0)
+            {
+                float newDamage = newZombie.GetComponent<zombieScript>().damage + 0.5f;
+                newZombie.GetComponent<zombieScript>().damage = newDamage;
+            }
             
             // spawn zombies randomly
             float x, z;

@@ -59,42 +59,51 @@ public class CharacterScript : MonoBehaviour
     }*/
     void HandleAiming()
     {
-        // if gamepad is connected, use right stick for aiming
+        bool isUsingController = false;
+
+        // if gamepad is connected, use the right stick for aiming
         if (Gamepad.current != null)
         {
             Vector2 rightStick = Gamepad.current.rightStick.ReadValue();
             if (rightStick.magnitude > 0.1f)
             {
+                isUsingController = true;
+
                 // Convert 2D stick input into a 3D direction
                 direction = new Vector3(rightStick.x, 0f, rightStick.y).normalized;
-            
+
                 // Rotate toward that direction
                 if (direction.magnitude > 0.1f)
                 {
                     Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
                     rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
                 }
+
+                // exit to prevent mouse from overriding
                 return;
             }
         }
 
-        // otherwise use mouse input for aiming
-        Vector3 mouseScreenPosition = new Vector3(
-            Input.mousePosition.x,
-            Input.mousePosition.y,
-            Camera.main.transform.position.y
-        );
-
-        Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(mouseScreenPosition);
-
-        // Calculate direction from player to mouse position
-        direction = (mouseWorldPosition - transform.position).normalized;
-        direction.y = 0;
-
-        if (direction.magnitude > 0.1f)
+        // fallback to mouse if controller is not being used
+        if (!isUsingController)
         {
-            Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
-            rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
+            Vector3 mouseScreenPosition = new Vector3(
+                Input.mousePosition.x,
+                Input.mousePosition.y,
+                Camera.main.transform.position.y
+            );
+
+            Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(mouseScreenPosition);
+
+            // Calculate direction from player to mouse position
+            direction = (mouseWorldPosition - transform.position).normalized;
+            direction.y = 0;
+
+            if (direction.magnitude > 0.1f)
+            {
+                Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
+                rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
+            }
         }
     }
     
