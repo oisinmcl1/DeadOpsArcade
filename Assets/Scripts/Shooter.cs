@@ -79,7 +79,7 @@ public class Shooter : MonoBehaviour
 
                 newbullet.transform.Rotate(90f, 0f, 0f, Space.Self);
                 newbullet.GetComponent<Rigidbody>()
-                    .AddForce((transform.forward * 20), ForceMode.Impulse); //give the bullet force
+                    .AddForce(transform.forward * 0.1f, ForceMode.Impulse); //give the bullet force
                 yield return new WaitForSeconds(0.50f);
                 break;
 

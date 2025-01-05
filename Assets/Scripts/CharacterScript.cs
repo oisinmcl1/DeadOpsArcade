@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,7 +11,10 @@ public class CharacterScript : MonoBehaviour
     [SerializeField] float groundYOffset;
     [SerializeField] LayerMask groundMask;
     private float health;
+    private bool isAlive;
     public Shooter s;
+    // public GameManager gm;
+    public GameManagerScript gms;
     Vector3 spherePos;
     Vector3 velocity;
     Vector3 direction;
@@ -23,8 +27,10 @@ public class CharacterScript : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         health = 5f;
+        isAlive = true;
         s = GetComponentInChildren<Shooter>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        gms = FindObjectOfType<GameManagerScript>();
     }
 
     void Update()
@@ -131,7 +137,10 @@ public class CharacterScript : MonoBehaviour
         // Set animator parameters based on the direction
         if (animator != null)
         {
-            animator.SetBool("hasPistol", s.getGunType() == Shooter.GunType.Pistol);
+            animator.SetBool("hasPistol", 
+                s.getGunType() == Shooter.GunType.Pistol || 
+                s.getGunType() == Shooter.GunType.Revolver);
+            
             animator.SetBool("hisRifle", s.getGunType() == Shooter.GunType.Rifle);
 
             animator.SetBool("isMovingForward", forwardDot > 0.1f);
@@ -153,6 +162,11 @@ public class CharacterScript : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!isAlive)
+        {
+            return;
+        }
+        
         // HandleMouseRotation();
         HandleAiming();
         HandleMovement();
@@ -174,7 +188,7 @@ public class CharacterScript : MonoBehaviour
         Gizmos.DrawWireSphere(spherePos, 0.2f);
     }
 
-    void OnTriggerEnter(Collider collider)
+    /*void OnTriggerEnter(Collider collider)
     {
         if (collider.gameObject.CompareTag("zombie"))
         {
@@ -194,14 +208,46 @@ public class CharacterScript : MonoBehaviour
                 gm.gameOver();
             }
         }
-    }
+    }*/
 
-    private void OnTriggerExit(Collider other) {
-        // If player leaves island teleport back
+    private void OnTriggerExit(Collider other)
+    {
         if (other.gameObject.CompareTag("island"))
         {
             Debug.Log("Player left island");
-            transform.position = new Vector3(2.97f, 6.38f, 3.52f);
+            // transform.position = new Vector3(2.97f, 6.38f, 3.52f);
+            takeDamage(999f);
+        }
+    }
+    
+    IEnumerator die()
+    {
+        Debug.Log("Player dying");
+        isAlive = false;
+        Debug.Log("Playing death animation");
+        animator.SetBool("isDead", true);
+        
+        // stop player rotation because user can just start spinning them in the death animation lol
+        // rb.constraints = RigidbodyConstraints.FreezeAll;
+        
+        gms.afterPlayerDies();
+        
+        // Wait for the animation to finish
+        yield return new WaitForSeconds(6f);
+        
+        Debug.Log("This is the player and i am destroying myself why did you let me die");
+        Destroy(gameObject);
+    }
+
+    public void takeDamage(float damage) {
+        if(!isAlive) {
+            return;
+        }
+        health -= damage;
+        Debug.Log("Player taking damage!, health: " + health);
+        
+        if(health <= 0) {
+            StartCoroutine(die());
         }
     }
 }

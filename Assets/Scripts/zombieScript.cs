@@ -5,23 +5,40 @@ using UnityEngine;
 public class zombieScript : MonoBehaviour
 {
     public GameObject player;
+    public CharacterScript cs;
     public float speed = 3f;
     public float avoidDistance = 1.5f; // Distance to check for obstacles
     public float rotationSpeed = 5f;
     public float attackDistance = 1.0f;
-    private float health;
+    public float damage = 1.0f;
+    public float health;
     private Animator animator;
 
     // Start is called before the first frame update
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
+        cs = player.GetComponent<CharacterScript>();
         animator = GetComponent<Animator>();
-        health = 5f;
+        health = 2f;
         this.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
     }
-    void setHealth(float h) {
+    
+    public void setHealth(float h) {
         this.health = h;
+    }
+    void checkHealth() {
+        if (health <= 0)
+        {
+            Debug.Log("Health is less than 0, destroying myself");
+            
+            // Notify the gms that a zombie has died
+            GameManagerScript gms = FindObjectOfType<GameManagerScript>();
+            gms.zombieDead(this.gameObject);
+            
+            // zombie needs to go away
+            GameObject.Destroy(this.gameObject);
+        }
     }
 
     // Update is called once per frame
@@ -41,10 +58,12 @@ public class zombieScript : MonoBehaviour
 
     void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Player")) {
-            Debug.Log("hit player!");
+            cs.takeDamage(damage);
         }
+        
         else if(other.gameObject.CompareTag("bullet")) {
             Bullet bullet = other.GetComponent<Bullet>();
+            
             if (bullet != null)
             {
                 float damage = bullet.getDamage();  // Ensure Bullet class has getDamage method
@@ -95,12 +114,5 @@ public class zombieScript : MonoBehaviour
 
     void FixedUpdate() {
 
-    }
-
-    void checkHealth() {
-        if (health <= 0) {
-            Debug.Log("Health is less than 0, destroying myself");
-            GameObject.Destroy(this.gameObject);
-        }
     }
 }
