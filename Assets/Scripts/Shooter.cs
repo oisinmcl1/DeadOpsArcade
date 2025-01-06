@@ -37,7 +37,7 @@ public class Shooter : MonoBehaviour
     void Start()
     {
         // since public values unity likes to remember the values in inspector so i set them here - this took me too long to figure out
-        prices = new int[]{0, 100, 200};
+        prices = new int[]{0, 1000, 2000};
         owned = new bool[]{true, false, false};
     }
 

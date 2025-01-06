@@ -185,7 +185,7 @@ public class CharacterScript : MonoBehaviour
             return;
         }
         
-        Debug.Log(onIsland);
+        // Debug.Log(onIsland);
         
         // HandleMouseRotation();
         HandleAiming();

@@ -31,7 +31,7 @@ public class IslandTeleport : MonoBehaviour
         gm = FindObjectOfType<GameManagerScript>();
         portalTextObject.SetActive(false);
         
-        portalCost = 100;
+        portalCost = 3000;
 
         // islandportaltxt
         // portalText = portalTextObject.GetComponent<TMP_Text>();
@@ -113,7 +113,7 @@ public class IslandTeleport : MonoBehaviour
         
         if (distanceToPlayer <= 5f)
         {
-            Debug.Log("Player is in range of portal");
+            // Debug.Log("Player is in range of portal");
             return true;
         }
         return false;
