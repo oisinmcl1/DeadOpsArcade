@@ -10,7 +10,7 @@ public class CharacterScript : MonoBehaviour
     private Animator animator; // Reference to the Animator
     [SerializeField] float groundYOffset;
     [SerializeField] LayerMask groundMask;
-    private float health;
+    public float health;
     private bool isAlive;
     public Shooter s;
     public GameManagerScript gms;
@@ -238,7 +238,7 @@ public class CharacterScript : MonoBehaviour
         isFrozen = true;
         
         Debug.Log("Playing death animation");
-        animator.SetBool("isDead", true);
+        animator.SetTrigger("isDead");
         
         // stop player rotation because user can just start spinning them in the death animation lol
         // rb.constraints = RigidbodyConstraints.FreezeAll;

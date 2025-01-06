@@ -13,6 +13,7 @@ public class zombieScript : MonoBehaviour
     public float damage = 1.0f;
     public float health;
     private Animator animator;
+    public GameObject bloodEffectPrefab;
 
     // Start is called before the first frame update
     void Start()
@@ -55,10 +56,22 @@ public class zombieScript : MonoBehaviour
             ChasePlayer();
         }
     }
+   
+    void SpawnBloodEffect(Vector3 position) {
+        if (bloodEffectPrefab != null) {
+            //instantiate the blood particle effect at the collision point
+            GameObject bloodEffect = Instantiate(bloodEffectPrefab, position, Quaternion.identity);
+            Destroy(bloodEffect, 2f);
+        }
+        else
+        {
+            Debug.Log("blood prefab not assigned");
+        }
+    }
 
     void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Player")) {
-            cs.takeDamage(damage);
+            cs.takeDamage(damage); //calls the takedamage method from the character script
         }
         
         else if(other.gameObject.CompareTag("bullet")) {
@@ -66,14 +79,21 @@ public class zombieScript : MonoBehaviour
             
             if (bullet != null)
             {
-                float damage = bullet.getDamage();  // Ensure Bullet class has getDamage method
+                float damage = bullet.getDamage();
                 health -= damage;
                 Debug.Log("Zombie hit by bullet, remaining health: " + health);
+
+                //get the hit point fom the collision 
+                if (other.TryGetComponent(out Collider bulletCollider)) {
+                    //get the losest point of impact to save thos coordinates for the blood effect
+                    Vector3 hitPoint = bulletCollider.ClosestPoint(transform.position);
+                    SpawnBloodEffect(hitPoint);
+                }
                 checkHealth();
             }
             else
             {
-                Debug.LogWarning("Bullet script missing on object with 'bullet' tag!");
+                Debug.LogWarning("Bullet script missing, from zombiescript");
             }
         }
     }

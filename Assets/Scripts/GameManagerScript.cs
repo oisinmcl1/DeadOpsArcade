@@ -36,11 +36,21 @@ public class GameManagerScript : MonoBehaviour
     private CharacterScript cs;
     private Shooter shooter;
     
-    // Island and Graveyard boundries
+    // Island and Graveyard boundaries
     public Vector3 islandTopLeft = new Vector3(-20.97f, 6.38322163f, 16.62f);
     public Vector3 islandBottomRight = new Vector3(20.5f, 6.38322163f, -18.6f);
     public Vector3 graveyardTopLeft = new Vector3(-529.3f, 86.0851746f, -486.5f);
     public Vector3 graveyardBottomRight = new Vector3(-481.4f, 86.0851746f, -516.8f);
+    
+    /*
+    private bool doublePointsActive = false;
+    private float doublePointsTimer = 0f;
+    private float doublePointsDuration = 30f;
+    private GameObject doublePointsTextObj;
+    */
+
+    private GameObject healthTxtObj;
+    private TMP_Text healthTxt;
 
     // Start is called before the first frame update
     void Start()
@@ -63,6 +73,28 @@ public class GameManagerScript : MonoBehaviour
     void FixedUpdate()
     {
         // testPurchase(2);
+
+        // if playing and character script is not null and healthtxt, update health text
+        if (currentState == gameState.Playing && cs != null && healthTxt != null)
+        {
+            healthTxt.text = cs.health.ToString();
+        }
+        
+        /*
+        if (doublePointsActive)
+        {
+            // if double points active, decrement timer
+            doublePointsTimer -= Time.fixedDeltaTime;
+            if (doublePointsTimer <= 0f)
+            {
+                doublePointsActive = false;
+                Debug.Log("Double points end");
+                
+                // turn off double points text
+                doublePointsTextObj.SetActive(false);
+            }
+        }
+        */
     }
     
     // keep track of where the player is
@@ -94,6 +126,9 @@ public class GameManagerScript : MonoBehaviour
                 Debug.Log("switching to game");
                 SceneManager.LoadScene("GameScene");
                 SceneManager.sceneLoaded += OnSceneLoaded; // Attach the event for scene load
+                
+                // doublePointsTextObj = GameObject.FindGameObjectWithTag("doublepointstxt");
+                
                 break;
         }
     }
@@ -157,6 +192,13 @@ public class GameManagerScript : MonoBehaviour
         pointTextObj = GameObject.FindGameObjectWithTag("pointstxt");
         pointText = pointTextObj.GetComponent<TMP_Text>();
         
+        /*
+        if (doublePointsTextObj != null)
+        {
+            doublePointsTextObj.SetActive(false);
+        }
+        */
+
         startNextRound();
     }
 
@@ -314,11 +356,19 @@ public class GameManagerScript : MonoBehaviour
         Destroy(zombie);
         zombies.Remove(zombie);
         
-        // find amt zombies
-        /*GameObject[] allZombies = GameObject.FindGameObjectsWithTag("zombie");
-        int amtZombies = allZombies.Length;*/
-        
         int amtZombies = zombies.Count;
+        
+        /*
+        // 10% chance of double points happening when a zombie dies
+        if (!doublePointsActive && Random.value < 0.99f)
+        {
+            doublePointsActive = true;
+            doublePointsTimer = doublePointsDuration;
+            Debug.Log("Double points start");
+            
+            doublePointsTextObj.SetActive(true);
+        }
+        */
 
         addPoints(100);
         
@@ -332,6 +382,13 @@ public class GameManagerScript : MonoBehaviour
     
     public void addPoints(int amt)
     {
+        /*
+        if (doublePointsActive)
+        {
+            amt *= 2;
+        }
+        */
+        
         points += amt;
         pointText.text = points.ToString();
     }
@@ -406,7 +463,7 @@ public class GameManagerScript : MonoBehaviour
             
             if (purchaseWeapon(i)) 
             {
-                    Debug.Log("Purchased weapon"); 
+                Debug.Log("Purchased weapon"); 
             }
         }
     }
