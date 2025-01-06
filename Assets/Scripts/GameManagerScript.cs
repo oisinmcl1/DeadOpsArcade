@@ -30,7 +30,7 @@ public class GameManagerScript : MonoBehaviour
     private GameObject highestRoundTextObj;
     private TMP_Text roundText;
     private TMP_Text highestRoundText;
-    private int points;
+    public int points;
     private GameObject pointTextObj;
     private TMP_Text pointText;
     private CharacterScript cs;
@@ -62,10 +62,7 @@ public class GameManagerScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (currentState == gameState.Playing)
-        {
-            testPurchase(2);
-        }
+        // testPurchase(2);
     }
     
     // keep track of where the player is

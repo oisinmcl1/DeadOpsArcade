@@ -14,8 +14,8 @@ public class Shooter : MonoBehaviour
     private int currentWeaponIndex = 0;
     
     // prices and owner status of each weapon for points purchasing
-    public int[] prices = {0, 100, 200};
-    public bool[] owned = { true, false, false };
+    public int[] prices;
+    public bool[] owned;
      
      public enum GunType
     {
@@ -32,6 +32,13 @@ public class Shooter : MonoBehaviour
         
        transform.localRotation = Quaternion.Euler(278.477814f,348.370789f,102.123825f);
        EquipWeapon(currentWeaponIndex);
+    }
+
+    void Start()
+    {
+        // since public values unity likes to remember the values in inspector so i set them here - this took me too long to figure out
+        prices = new int[]{0, 100, 200};
+        owned = new bool[]{true, false, false};
     }
 
     void Update()
