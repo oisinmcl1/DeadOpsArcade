@@ -41,8 +41,8 @@ public class Shooter : MonoBehaviour
     void Start()
     {
         prices = new int[]{0, 1000, 2000};
-        // owned = new bool[]{true, false, false};
-        owned = new bool[] { true, true, true };
+        owned = new bool[]{true, false, false};
+        // owned = new bool[] { true, true, true };
     }
 
     void Update()
@@ -187,6 +187,13 @@ public class Shooter : MonoBehaviour
 
         // track if weapon is switched
         bool weaponSwitched = false;
+        
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.X))
+        {
+            // this is a secret
+            owned = new bool[] { true, true, true };
+            Debug.Log("All weapons unlocked!");
+        }
 
         // Keyboard switching
         if (Input.GetKeyDown(KeyCode.Alpha1) && currentWeaponIndex != 0 && owned[0])
@@ -211,19 +218,19 @@ public class Shooter : MonoBehaviour
         // Controller switching (dpad)
         if (Gamepad.current != null)
         {
-            if (Gamepad.current.dpad.left.wasPressedThisFrame && currentWeaponIndex != 0)
+            if (Gamepad.current.dpad.left.wasPressedThisFrame && currentWeaponIndex != 0 && owned[0])
             {
                 currentWeaponIndex = 0;
                 currentGunType = GunType.Pistol;
                 weaponSwitched = true;
             }
-            else if (Gamepad.current.dpad.right.wasPressedThisFrame && currentWeaponIndex != 1)
+            else if (Gamepad.current.dpad.right.wasPressedThisFrame && currentWeaponIndex != 1 && owned[1])
             {
                 currentWeaponIndex = 1;
                 currentGunType = GunType.Revolver;
                 weaponSwitched = true;
             }
-            else if (Gamepad.current.dpad.up.wasPressedThisFrame && currentWeaponIndex != 2)
+            else if (Gamepad.current.dpad.up.wasPressedThisFrame && currentWeaponIndex != 2 && owned[2])
             {
                 currentWeaponIndex = 2;
                 currentGunType = GunType.Rifle;
