@@ -13,13 +13,15 @@ public class CharacterScript : MonoBehaviour
     private float health;
     private bool isAlive;
     public Shooter s;
-    // public GameManager gm;
     public GameManagerScript gms;
     Vector3 spherePos;
     Vector3 velocity;
     Vector3 direction;
     private bool isFrozen;
     public bool onIsland;
+    public bool isShooting;
+    public bool isReadyToFireBullet;
+    private GameObject weapon;
 
     void Start()
     {
@@ -35,37 +37,31 @@ public class CharacterScript : MonoBehaviour
         gms = FindObjectOfType<GameManagerScript>();
         isFrozen = false;
         onIsland = true;
+
+        // get weapon by tag
+        weapon = GameObject.FindGameObjectWithTag("weapon");
     }
 
     void Update()
     {
     }
 
-    /*void HandleMouseRotation()
+    void FixedUpdate()
     {
-        // Calculate the mouse position in the world space
-        Vector3 mouseScreenPosition =
-            new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y);
-        
-        Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(mouseScreenPosition);
-
-        // Calculate the direction vector from the character to the mouse position
-        direction = (mouseWorldPosition - transform.position).normalized;
-
-        direction.y = 0;
-
-        // If the mouse is significantly far enough, rotate toward the mouse
-        if (direction.magnitude > 0.1f)
+        if (!isAlive)
         {
-            Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
-            rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
+            return;
         }
-    }*/
+
+        HandleAiming();
+        HandleMovement();
+    }
+
     void HandleAiming()
     {
         bool isUsingController = false;
 
-        // if gamepad is connected, use the right stick for aiming
+        // check controller being used
         if (Gamepad.current != null)
         {
             Vector2 rightStick = Gamepad.current.rightStick.ReadValue();
@@ -82,13 +78,10 @@ public class CharacterScript : MonoBehaviour
                     Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
                     rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
                 }
-
-                // exit to prevent mouse from overriding
-                return;
             }
         }
 
-        // fallback to mouse if controller is not being used
+        // mouse if no controller for aiming
         if (!isUsingController)
         {
             Vector3 mouseScreenPosition = new Vector3(
@@ -96,69 +89,79 @@ public class CharacterScript : MonoBehaviour
                 Input.mousePosition.y,
                 Camera.main.transform.position.y
             );
-
             Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(mouseScreenPosition);
 
-            // Calculate direction from player to mouse position
-            direction = (mouseWorldPosition - transform.position).normalized;
-            direction.y = 0;
-
-            if (direction.magnitude > 0.1f)
+            // if shooting rotate differently (gun based), otherwise rotate player normally
+            if (isShooting)
             {
-                Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
-                rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
+                isReadyToFireBullet = false;
+
+                // Gun-to-mouse direction
+                Vector3 desiredGunDirection = (mouseWorldPosition - weapon.transform.position).normalized;
+                desiredGunDirection.y = 0;
+
+                // Current gun forward
+                Vector3 currentGunForward = weapon.transform.forward;
+                currentGunForward.y = 0;
+
+                // Calculate the rotation offset
+                Quaternion gunRotationOffset = Quaternion.FromToRotation(currentGunForward, desiredGunDirection);
+
+                // Apply the offset to the player's rotation
+                Quaternion newPlayerRotation = gunRotationOffset * transform.rotation;
+                rb.MoveRotation(newPlayerRotation);
+
+                isReadyToFireBullet = true;
+            }
+            else
+            {
+                // Original rotate player to face mouse
+                direction = (mouseWorldPosition - transform.position).normalized;
+                direction.y = 0;
+
+                if (direction.magnitude > 0.1f)
+                {
+                    Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
+                    rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, toRotation, 720 * Time.fixedDeltaTime));
+                }
             }
         }
     }
-    
+
     void HandleMovement()
     {
         if (isFrozen)
         {
             return;
         }
-        
-        // Determine the forward direction based on the magnitude of the direction vector
-        // Vector3 forward = direction;
-        Vector3 forward;
-        if (direction.magnitude > 0.1f)
-        {
-            // If the direction vector's magnitude is greater than 0.1, use the direction vector
-            forward = direction;
-        }
-        else
-        {
-            // Otherwise, use the transform's forward direction
-            forward = transform.forward;
-        }
+
+        // If direction vector is small, default to current forward
+        Vector3 forward = (direction.magnitude > 0.1f) ? direction : transform.forward;
         Vector3 right = Vector3.Cross(transform.up, forward).normalized;
 
-        // Get input for movement (horizontal and vertical) from both keyboard and controller
-        // Keyboard inputs
+        // Movement from keyboard or controller’s left stick
         float moveRight = Input.GetAxis("Horizontal");
         float moveForward = Input.GetAxis("Vertical");
 
         // Check if a controller is connected
-        if (Gamepad.current != null) 
+        if (Gamepad.current != null)
         {
             moveRight = Gamepad.current.leftStick.x.ReadValue();
             moveForward = Gamepad.current.leftStick.y.ReadValue();
         }
 
-        // Calculate the movement vector in world space relative to the player's facing direction
+        // Construct movement in world space
         Vector3 movement = ((forward * moveForward) + (right * moveRight)).normalized;
 
-        // Figure out the movement direction
+        // Figure out forward/back/left/right for the animator
         float forwardDot = Vector3.Dot(movement, forward);
         float rightDot = Vector3.Dot(movement, right);
 
-        // Set animator parameters based on the direction
+        // Update animator
         if (animator != null)
         {
             animator.SetBool("hasPistol", 
-                s.getGunType() == Shooter.GunType.Pistol || 
-                s.getGunType() == Shooter.GunType.Revolver);
-            
+                s.getGunType() == Shooter.GunType.Pistol || s.getGunType() == Shooter.GunType.Revolver);
             animator.SetBool("hisRifle", s.getGunType() == Shooter.GunType.Rifle);
 
             animator.SetBool("isMovingForward", forwardDot > 0.1f);
@@ -169,7 +172,7 @@ public class CharacterScript : MonoBehaviour
             animator.SetBool("isMovingSideways", rightDot > 0.1f || rightDot < -0.1f);
         }
 
-        // Apply movement if there is any
+        // Apply movement
         if (movement.magnitude > 0.1f)
         {
             Vector3 moveDirection = movement * speed * Time.fixedDeltaTime;
@@ -177,27 +180,9 @@ public class CharacterScript : MonoBehaviour
         }
     }
 
-
-    void FixedUpdate()
-    {
-        if (!isAlive)
-        {
-            return;
-        }
-        
-        // Debug.Log(onIsland);
-        
-        // HandleMouseRotation();
-        HandleAiming();
-        HandleMovement();
-    }
-
-
     bool IsGrounded()
     {
-        // Calculate position for ground check sphere
-        Vector3 spherePos =
-            new Vector3(transform.position.x, transform.position.y - groundYOffset, transform.position.z);
+        Vector3 spherePos = new Vector3(transform.position.x, transform.position.y - groundYOffset, transform.position.z);
         return Physics.CheckSphere(spherePos, 0.3f, groundMask);
     }
 
@@ -245,7 +230,7 @@ public class CharacterScript : MonoBehaviour
             takeDamage(999f);
         }
     }
-    
+
     IEnumerator die()
     {
         Debug.Log("Player dying");
@@ -267,14 +252,18 @@ public class CharacterScript : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public void takeDamage(float damage) {
-        if(!isAlive) {
+    public void takeDamage(float damage)
+    {
+        if (!isAlive)
+        {
             return;
         }
+        
         health -= damage;
         Debug.Log("Player taking damage!, health: " + health);
-        
-        if(health <= 0) {
+
+        if (health <= 0)
+        {
             StartCoroutine(die());
         }
     }

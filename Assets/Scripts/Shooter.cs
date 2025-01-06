@@ -17,7 +17,7 @@ public class Shooter : MonoBehaviour
     public int[] prices;
     public bool[] owned;
      
-     public enum GunType
+    public enum GunType
     {
         Pistol,
         Revolver,
@@ -25,49 +25,71 @@ public class Shooter : MonoBehaviour
     }
     public GunType currentGunType;
     
+    private CharacterScript cs; 
+
     void Awake()
     {
         // Set the gun's parent to the hand
         transform.SetParent(hand);
         
-       transform.localRotation = Quaternion.Euler(278.477814f,348.370789f,102.123825f);
-       EquipWeapon(currentWeaponIndex);
+        transform.localRotation = Quaternion.Euler(278.477814f,348.370789f,102.123825f);
+        EquipWeapon(currentWeaponIndex);
+        
+        cs = GetComponentInParent<CharacterScript>(); 
     }
 
     void Start()
     {
-        // since public values unity likes to remember the values in inspector so i set them here - this took me too long to figure out
         prices = new int[]{0, 1000, 2000};
-        owned = new bool[]{true, false, false};
+        // owned = new bool[]{true, false, false};
+        owned = new bool[] { true, true, true };
     }
 
     void Update()
     {
+        // Keep this shooter transform at the correct offset from the hand
         transform.position = hand.position + offset;
+        
         HandleShooting();
         HandleWeaponSwitching();
     }
 
-    void HandleShooting() {
-        if (Input.GetMouseButtonDown(0) && canFire) { //canFire boolean controls the firing rate so 1 bullet can be fired every 0.25 seconds
-            StartCoroutine(FireBullet());  //coroutine handles the bullet firing 
+    void HandleShooting() 
+    {
+        // Mouse shooting
+        if (Input.GetMouseButtonDown(0) && canFire)
+        {
+            cs.isShooting = true;
+            StartCoroutine(FireBullet());
         }
+
         // Controller shooting
         if (Gamepad.current != null)
         {
             // Right trigger
             if (Gamepad.current.rightTrigger.wasPressedThisFrame && canFire)
             {
+                cs.isShooting = true;
                 StartCoroutine(FireBullet());
             }
         }
     }
 
-        IEnumerator FireBullet() {
-        canFire=false; //disables new bullets from firing until set to true
-        GameObject newbullet = GameObject.Instantiate(bullet, this.gameObject.transform.position + this.gameObject.transform.forward, this.gameObject.transform.rotation); //instansiate bullet's position to the front of the spaceship, and give it the spaceship's rotation so it fires straight
+    IEnumerator FireBullet()
+    {
+        canFire = false; // Disable new bullets until done
+        
+        yield return new WaitUntil(() => cs.isReadyToFireBullet);
+
+        // Instantiate bullet at this Shooter’s position + forward
+        GameObject newbullet = GameObject.Instantiate(
+            bullet,
+            this.gameObject.transform.position + this.gameObject.transform.forward,
+            this.gameObject.transform.rotation
+        );
         Bullet bulletComponent = newbullet.GetComponent<Bullet>();
 
+        // Existing gun-type logic
         switch (currentGunType)
         {
             case GunType.Pistol:
@@ -78,7 +100,7 @@ public class Shooter : MonoBehaviour
 
                 newbullet.transform.Rotate(90f, 0f, 0f, Space.Self);
                 newbullet.GetComponent<Rigidbody>()
-                    .AddForce((transform.forward * 20), ForceMode.Impulse); //give the bullet force
+                    .AddForce((transform.forward * 20), ForceMode.Impulse); // bullet force
                 yield return new WaitForSeconds(0.25f);
                 break;
 
@@ -90,7 +112,7 @@ public class Shooter : MonoBehaviour
 
                 newbullet.transform.Rotate(90f, 0f, 0f, Space.Self);
                 newbullet.GetComponent<Rigidbody>()
-                    .AddForce(transform.forward * 0.1f, ForceMode.Impulse); //give the bullet force
+                    .AddForce(transform.forward * 0.1f, ForceMode.Impulse); // bullet force
                 yield return new WaitForSeconds(0.50f);
                 break;
 
@@ -101,16 +123,15 @@ public class Shooter : MonoBehaviour
                 }
 
                 newbullet.transform.Rotate(90f, 0f, 0f, Space.Self);
-
-                // give force but little bit stronger
-                newbullet.GetComponent<Rigidbody>().AddForce(transform.forward * 25, ForceMode.Impulse);
-
-                // faster firerate too
+                newbullet.GetComponent<Rigidbody>()
+                    .AddForce(transform.forward * 25, ForceMode.Impulse); // bullet force
                 yield return new WaitForSeconds(0.15f);
                 break;
         }
 
         canFire = true;
+        
+        cs.isShooting = false;
     }
 
     public void EquipWeapon(int weaponIndex)
@@ -126,7 +147,7 @@ public class Shooter : MonoBehaviour
         weapons[weaponIndex].SetActive(true);
         currentWeaponIndex = weaponIndex;
 
-        // set gun to parents hand
+        // Set gun to parent's hand
         weapons[weaponIndex].transform.SetParent(hand);
         
         weapons[weaponIndex].transform.localPosition = Vector3.zero;
@@ -154,8 +175,8 @@ public class Shooter : MonoBehaviour
         }
     }
 
-
-    public GunType getGunType() {
+    public GunType getGunType()
+    {
         return currentGunType;
     }
 
@@ -167,30 +188,27 @@ public class Shooter : MonoBehaviour
         // track if weapon is switched
         bool weaponSwitched = false;
 
-        // Keyboard switching weapons
-        if (Input.GetKeyDown(KeyCode.Alpha1) && currentWeaponIndex != 0
-            && (owned[0]))
+        // Keyboard switching
+        if (Input.GetKeyDown(KeyCode.Alpha1) && currentWeaponIndex != 0 && owned[0])
         {
             currentWeaponIndex = 0;
             currentGunType = GunType.Pistol;
             weaponSwitched = true;
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha2) && currentWeaponIndex != 1
-                 && (owned[1]))
+        else if (Input.GetKeyDown(KeyCode.Alpha2) && currentWeaponIndex != 1 && owned[1])
         {
             currentWeaponIndex = 1;
             currentGunType = GunType.Revolver;
             weaponSwitched = true;
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha3) && currentWeaponIndex != 2
-                 && (owned[2]))
+        else if (Input.GetKeyDown(KeyCode.Alpha3) && currentWeaponIndex != 2 && owned[2])
         {
             currentWeaponIndex = 2;
             currentGunType = GunType.Rifle;
             weaponSwitched = true;
         }
 
-        // Controller switching weapons (using dpad)
+        // Controller switching (dpad)
         if (Gamepad.current != null)
         {
             if (Gamepad.current.dpad.left.wasPressedThisFrame && currentWeaponIndex != 0)
@@ -215,6 +233,7 @@ public class Shooter : MonoBehaviour
         
         if (weaponSwitched)
         {
+            // Freeze player so the weapon switch doesn't break animations, etc.
             cs.freezePlayer();
             EquipWeapon(currentWeaponIndex);
         }
