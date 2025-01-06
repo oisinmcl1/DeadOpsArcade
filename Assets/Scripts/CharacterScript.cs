@@ -19,6 +19,7 @@ public class CharacterScript : MonoBehaviour
     Vector3 velocity;
     Vector3 direction;
     private bool isFrozen;
+    public bool onIsland;
 
     void Start()
     {
@@ -33,6 +34,7 @@ public class CharacterScript : MonoBehaviour
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         gms = FindObjectOfType<GameManagerScript>();
         isFrozen = false;
+        onIsland = true;
     }
 
     void Update()
@@ -183,6 +185,8 @@ public class CharacterScript : MonoBehaviour
             return;
         }
         
+        Debug.Log(onIsland);
+        
         // HandleMouseRotation();
         HandleAiming();
         HandleMovement();
@@ -228,6 +232,12 @@ public class CharacterScript : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        // player will die if teleported off island without disabling this trigger
+        if (!onIsland)
+        {
+            return;
+        }
+        
         if (other.gameObject.CompareTag("island"))
         {
             Debug.Log("Player left island");

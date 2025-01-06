@@ -18,6 +18,7 @@ public class GameManagerScript : MonoBehaviour
     public static float screenWidth, screenHeight;
     public static GameManagerScript instance;
     public GameObject character;
+    public GameObject characterPrefab;
     public GameObject zombie;
     public int round;
     private int highestRound;
@@ -32,6 +33,13 @@ public class GameManagerScript : MonoBehaviour
     private int points;
     private GameObject pointTextObj;
     private TMP_Text pointText;
+    private CharacterScript cs;
+    
+    // Island and Graveyard boundries
+    public Vector3 islandTopLeft = new Vector3(-20.97f, 6.38322163f, 16.62f);
+    public Vector3 islandBottomRight = new Vector3(20.5f, 6.38322163f, -18.6f);
+    public Vector3 graveyardTopLeft = new Vector3(-529.3f, 86.0851746f, -486.5f);
+    public Vector3 graveyardBottomRight = new Vector3(-481.4f, 86.0851746f, -516.8f);
 
     // Start is called before the first frame update
     void Start()
@@ -54,6 +62,14 @@ public class GameManagerScript : MonoBehaviour
     void FixedUpdate()
     {
     }
+    
+    // keep track of where the player is
+    public enum map
+    {
+        Island,
+        Graveyard
+    }
+    public map currentMap;
 
     public void onStartGameButtonClick()
     {
@@ -124,6 +140,8 @@ public class GameManagerScript : MonoBehaviour
 
         // Spawn the character
         spawnCharacter();
+        cs = character.GetComponent<CharacterScript>();
+        cs.onIsland = true;
         
         round = 0;
         baseAmtZombies = 2;
@@ -143,7 +161,7 @@ public class GameManagerScript : MonoBehaviour
     private void spawnCharacter()
     {
         // Instantiate and assign to character variable
-        character = Instantiate(character);
+        character = Instantiate(characterPrefab);
         
         // get camera script for character
         CameraScript camScript = Camera.main.GetComponent<CameraScript>();
@@ -175,6 +193,19 @@ public class GameManagerScript : MonoBehaviour
         {
             highestRound = round;
         }
+        
+        Vector3 topLeft, bottomRight;
+            
+        if (cs.onIsland)
+        {
+            topLeft = islandTopLeft;
+            bottomRight = islandBottomRight;
+        }
+        else
+        {
+            topLeft = graveyardTopLeft;
+            bottomRight = graveyardBottomRight;
+        }
 
         // spawn zombies depending on round
         int amtZombies = baseAmtZombies * round;
@@ -195,27 +226,35 @@ public class GameManagerScript : MonoBehaviour
                 newZombie.GetComponent<zombieScript>().damage = newDamage;
             }
             
-            // spawn zombies randomly
             float x, z;
 
-            // lr edege
+            // lr edge
             if (Random.value < 0.5f)
-                x = screenBottomLeft.x + Random.value * 0.15f * screenWidth;
+            {
+                x = topLeft.x + Random.value * 0.15f * (bottomRight.x - topLeft.x);
+            }
             else
-                x = screenTopRight.x - Random.value * 0.15f * screenWidth;
+            {
+                x = bottomRight.x - Random.value * 0.15f * (bottomRight.x - topLeft.x);
+            }
 
-            // bt edge
+            // tb edge
             if (Random.value < 0.5f)
-                z = screenBottomLeft.z + Random.value * 0.15f * screenHeight;
+            {
+                z = topLeft.z - Random.value * 0.15f * (topLeft.z - bottomRight.z);
+            }
             else
-                z = screenTopRight.z - Random.value * 0.15f * screenHeight;
-
-            // zombie was emerging from ground but didnt look right
+            {
+                z = bottomRight.z + Random.value * 0.15f * (topLeft.z - bottomRight.z);
+            }
+            
+            // same y as player
             float y = character.transform.position.y;
             
             newZombie.transform.position = new Vector3(x, y, z);
-            zombies.Add(newZombie);
             Debug.Log("Spawned zombie at: " + newZombie.transform.position);
+            
+            zombies.Add(newZombie);
         }
     }
     
@@ -287,5 +326,20 @@ public class GameManagerScript : MonoBehaviour
     {
         points -= amt;
         pointText.text = points.ToString();
+    }
+
+    public void moveZombiesTo(Vector3 pos)
+    {
+        // teleport all zombies to new map randomly
+        for (int i = 0; i < zombies.Count; i++)
+        {
+            Vector3 random = new Vector3(
+                Random.Range(-5f, 5f),
+                0f,
+                Random.Range(-5f, 5f)
+            );
+
+            zombies[i].transform.position = pos + random;
+        }
     }
 }
