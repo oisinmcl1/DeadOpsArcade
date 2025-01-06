@@ -12,6 +12,10 @@ public class Shooter : MonoBehaviour
     public GameObject[] weapons;
     private bool canFire = true;
     private int currentWeaponIndex = 0;
+    
+    // prices and owner status of each weapon for points purchasing
+    public int[] prices = {0, 100, 200};
+    public bool[] owned = { true, false, false };
      
      public enum GunType
     {
@@ -40,7 +44,7 @@ public class Shooter : MonoBehaviour
     void HandleShooting() {
         if (Input.GetMouseButtonDown(0) && canFire) { //canFire boolean controls the firing rate so 1 bullet can be fired every 0.25 seconds
             StartCoroutine(FireBullet());  //coroutine handles the bullet firing 
-            }
+        }
         // Controller shooting
         if (Gamepad.current != null)
         {
@@ -102,7 +106,7 @@ public class Shooter : MonoBehaviour
         canFire = true;
     }
 
-    void EquipWeapon(int weaponIndex)
+    public void EquipWeapon(int weaponIndex)
     {
         // Deactivate all weapons
         foreach (GameObject weapon in weapons)
@@ -157,19 +161,22 @@ public class Shooter : MonoBehaviour
         bool weaponSwitched = false;
 
         // Keyboard switching weapons
-        if (Input.GetKeyDown(KeyCode.Alpha1) && currentWeaponIndex != 0)
+        if (Input.GetKeyDown(KeyCode.Alpha1) && currentWeaponIndex != 0
+            && (owned[0]))
         {
             currentWeaponIndex = 0;
             currentGunType = GunType.Pistol;
             weaponSwitched = true;
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha2) && currentWeaponIndex != 1)
+        else if (Input.GetKeyDown(KeyCode.Alpha2) && currentWeaponIndex != 1
+                 && (owned[1]))
         {
             currentWeaponIndex = 1;
             currentGunType = GunType.Revolver;
             weaponSwitched = true;
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha3) && currentWeaponIndex != 2)
+        else if (Input.GetKeyDown(KeyCode.Alpha3) && currentWeaponIndex != 2
+                 && (owned[2]))
         {
             currentWeaponIndex = 2;
             currentGunType = GunType.Rifle;
@@ -205,5 +212,4 @@ public class Shooter : MonoBehaviour
             EquipWeapon(currentWeaponIndex);
         }
     }
-
 }

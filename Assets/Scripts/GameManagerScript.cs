@@ -34,6 +34,7 @@ public class GameManagerScript : MonoBehaviour
     private GameObject pointTextObj;
     private TMP_Text pointText;
     private CharacterScript cs;
+    private Shooter shooter;
     
     // Island and Graveyard boundries
     public Vector3 islandTopLeft = new Vector3(-20.97f, 6.38322163f, 16.62f);
@@ -61,6 +62,10 @@ public class GameManagerScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (currentState == gameState.Playing)
+        {
+            testPurchase(2);
+        }
     }
     
     // keep track of where the player is
@@ -166,6 +171,18 @@ public class GameManagerScript : MonoBehaviour
         // get camera script for character
         CameraScript camScript = Camera.main.GetComponent<CameraScript>();
         camScript.player = character;
+        
+        // get shooter script
+        shooter = character.GetComponentInChildren<Shooter>();
+        
+        /*if (shooter == null)
+        {
+            Debug.Log("shooter is null");
+        }
+        else
+        {
+            Debug.Log("shooter not null");
+        }*/
     }
 
 
@@ -325,6 +342,12 @@ public class GameManagerScript : MonoBehaviour
     public void removePoints(int amt)
     {
         points -= amt;
+        
+        if (points < 0)
+        {
+            points = 0;
+        }
+        
         pointText.text = points.ToString();
     }
 
@@ -340,6 +363,54 @@ public class GameManagerScript : MonoBehaviour
             );
 
             zombies[i].transform.position = pos + random;
+        }
+    }
+    
+    public bool purchaseWeapon(int i)
+    {
+        // if weapon is already owned and player has enough points
+        if ((!shooter.owned[i]) && points >= shooter.prices[i])
+        {
+            // remove points and set weapon to owned
+            removePoints(shooter.prices[i]);
+            shooter.owned[i] = true;
+            
+            shooter.EquipWeapon(i);
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    public void testPurchase(int i)
+    {
+        if (i < 0 || i >= shooter.prices.Length)
+        {
+            Debug.Log("Invalid index");
+            return;
+        }
+        
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("Attempting to purchase " + i);
+            Debug.Log("Weapon owned: " + shooter.owned[i]);
+            Debug.Log("Points: " + points);
+            Debug.Log("Price: " + shooter.prices[i]);
+            
+            if (points >= shooter.prices[i])
+            {
+                Debug.Log("Player has enough points");
+            }
+            if (points < shooter.prices[i])
+            {
+                Debug.Log("Player does not have enough points");
+            }
+            
+            if (purchaseWeapon(i)) 
+            {
+                    Debug.Log("Purchased weapon"); 
+            }
         }
     }
 }
